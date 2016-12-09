@@ -37,6 +37,10 @@ public enum Coin {
         String priceString = Integer.toString(mCoinValue);
         int length = priceString.length();
 
-        return priceString.substring(0, length - 2) + "." + priceString.substring(length - 2, length);
+        if(length == 1){
+            return ".0 " + priceString;
+        } else{
+            return priceString.substring(0, length - 2) + "." + priceString.substring(length - 2, length);
+        }
     }
 }

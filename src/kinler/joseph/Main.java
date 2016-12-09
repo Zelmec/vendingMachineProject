@@ -25,11 +25,15 @@ public class Main {
             System.out.println("Please select an operation!");
             System.out.println("1. Select a snack");
             System.out.println("2. Insert a coin");
-            System.out.println("3. Quit");
+            System.out.println("3. Get payment status");
+            System.out.println("4. Refund balance");
+            System.out.println("5. Quit");
             System.out.println();
 
             do {
+                System.out.print("Enter: ");
                 String input = INPUT_SCANNER.nextLine();
+                System.out.println();
 
                 try{
                     selection = Integer.parseInt(input);
@@ -49,11 +53,23 @@ public class Main {
                     if(snackMachine != null) {
                         snackMachine.selectItem(selectSnackPrompt());
                     }
+                    break;
                 case 2:
                     if(snackMachine != null && snackMachine.getCurrentSnack() != null) {
-                        snackMachine.insertCoin(insertCoinPrompt(snackMachine.getCurrentSnack().getPrice(), snackMachine.getCurrentSnack().getPriceString()));
+                        snackMachine.insertCoin(insertCoinPrompt());
                     }
+                    break;
                 case 3:
+                    if(snackMachine != null) {
+                        getPaymentStatus(snackMachine.getCurrentBalance(), snackMachine.getCurrentSnack());
+                    }
+                    break;
+                case 4:
+                    if(snackMachine != null){
+                        getRefund(snackMachine.refund());
+                    }
+                    break;
+                case 5:
                     isRunning = false;
                     break;
                 default:
@@ -75,7 +91,9 @@ public class Main {
         System.out.println();
 
         do {
+            System.out.print("Enter: ");
             String input = INPUT_SCANNER.nextLine();
+            System.out.println();
 
             if(input.trim().equalsIgnoreCase("e")){
                 return null;
@@ -95,7 +113,7 @@ public class Main {
         } while(true);
     }
 
-    private static Coin insertCoinPrompt(int price, String priceString){
+    private static Coin insertCoinPrompt(){
         int selection;
 
         System.out.println("Please select a coin to insert!");
@@ -106,7 +124,9 @@ public class Main {
         System.out.println();
 
         do {
+            System.out.print("Enter: ");
             String input = INPUT_SCANNER.nextLine();
+            System.out.println();
 
             if(input.trim().equalsIgnoreCase("e")){
                 return null;
@@ -124,5 +144,55 @@ public class Main {
                 System.out.println("NumberFormatException: input string \""+input+"\" could not be parsed to an integer.");
             }
         } while(true);
+    }
+
+    private static void getPaymentStatus(int balance, Snack snack){
+        String balanceString = Integer.toString(balance);
+        int length = balanceString.length();
+
+        if(balanceString.length() == 1){
+            balanceString = ".0" + balanceString;
+        } else{
+            balanceString = balanceString.substring(0, length - 2) + "." + balanceString.substring(length - 2, length);
+        }
+
+        System.out.println("Your Balance: "+balanceString);
+        if(snack != null && balance > snack.getPrice()){
+            System.out.println("Snack price: "+snack.getPriceString());
+            System.out.println("You have enough money to purchase your snack!");
+        }
+        System.out.println();
+    }
+
+    private static void getRefund(List<Coin> coins){
+        int pennies = 0;
+        int nickles = 0;
+        int dimes = 0;
+        int quarters = 0;
+
+        if(coins != null && coins.size() > 0){
+            for(Coin coin: coins){
+                switch (coin){
+                    case PENNY:
+                        pennies++;
+                        break;
+                    case NICKLE:
+                        nickles++;
+                        break;
+                    case DIME:
+                        dimes++;
+                        break;
+                    case QUARTER:
+                        quarters++;
+                        break;
+                }
+            }
+
+            System.out.print("You have " + pennies + " pennies, ");
+            System.out.print(nickles + " nickles, ");
+            System.out.print(dimes + " dimes, ");
+            System.out.print("and "+ quarters + "quarters.");
+            System.out.println();
+        }
     }
 }

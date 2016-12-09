@@ -162,4 +162,8 @@ public class SnackMachine implements VendingMachine {
     public Snack getCurrentSnack() {
         return mCurrentSnack;
     }
+
+    public int getCurrentBalance() {
+        return mCurrentBalance;
+    }
 }
