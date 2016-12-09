@@ -2,6 +2,8 @@ package kinler.joseph;
 
 import kinler.joseph.enumTypes.Coin;
 import kinler.joseph.enumTypes.Snack;
+import kinler.joseph.exceptions.InsufficientPaymentException;
+import kinler.joseph.exceptions.OutOfChangeException;
 import kinler.joseph.factories.VendingMachineFactory;
 import kinler.joseph.vendingMachines.SnackMachine;
 
@@ -10,76 +12,63 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-
-    private static final int NUM_OPTIONS = 3;
+    private static final SnackMachine SNACK_MACHINE = (SnackMachine) VendingMachineFactory.createVendingMachine(VendingMachineFactory.SNACK_MACHINE);
+    private static final int NUM_OPTIONS = 6;
     private static final Scanner INPUT_SCANNER = new Scanner(System.in);
 
     public static void main(String[] args) {
-        SnackMachine snackMachine = (SnackMachine) VendingMachineFactory.createVendingMachine(VendingMachineFactory.SNACK_MACHINE);
-        int selection = 0;
+        int selection;
         boolean isRunning = true;
         List<Snack> purchases = new ArrayList<>();
 
-        while(isRunning){
+        //Check to make sure that the snack machine exists since it is integral to the program
+        if(SNACK_MACHINE != null) {
+            //Run loop until the user explicitly cancels it
+            while (isRunning) {
 
-            System.out.println("Please select an operation!");
-            System.out.println("1. Select a snack");
-            System.out.println("2. Insert a coin");
-            System.out.println("3. Get payment status");
-            System.out.println("4. Refund balance");
-            System.out.println("5. Quit");
-            System.out.println();
-
-            do {
-                System.out.print("Enter: ");
-                String input = INPUT_SCANNER.nextLine();
+                System.out.println("Please select an operation!");
+                System.out.println("1. Select a snack");
+                System.out.println("2. Insert a coin");
+                System.out.println("3. Get transaction info");
+                System.out.println("4. Collect Snack");
+                System.out.println("5. Refund balance");
+                System.out.println("6. Quit");
                 System.out.println();
 
-                try{
-                    selection = Integer.parseInt(input);
+                selection = getUserIntInput(NUM_OPTIONS);
 
-                    if(selection > 0 && selection <= NUM_OPTIONS){
+                //Once an option is chosen, this switch will perform the task
+                switch (selection) {
+                    case 1:
+                        SNACK_MACHINE.selectItem(selectSnackPrompt());
                         break;
-                    } else{
-                        System.out.println("The selection you made was not valid. Please enter a different number.");
-                    }
-                } catch(NumberFormatException e){
-                    System.out.println("NumberFormatException: input string \""+input+"\" could not be parsed to an integer.");
+                    case 2:
+                        SNACK_MACHINE.insertCoin(insertCoinPrompt());
+                        break;
+                    case 3:
+                        getTransactionInfo(purchases);
+                        break;
+                    case 4:
+                        Snack purchase = collectItem();
+                        if(purchase != null){
+                            purchases.add(purchase);
+                        }
+                        break;
+                    case 5:
+                        printRefund(SNACK_MACHINE.refund());
+                        break;
+                    case 6:
+                        isRunning = false;
+                        break;
+                    default:
                 }
-            } while(true);
-
-            switch (selection){
-                case 1:
-                    if(snackMachine != null) {
-                        snackMachine.selectItem(selectSnackPrompt());
-                    }
-                    break;
-                case 2:
-                    if(snackMachine != null && snackMachine.getCurrentSnack() != null) {
-                        snackMachine.insertCoin(insertCoinPrompt());
-                    }
-                    break;
-                case 3:
-                    if(snackMachine != null) {
-                        getPaymentStatus(snackMachine.getCurrentBalance(), snackMachine.getCurrentSnack());
-                    }
-                    break;
-                case 4:
-                    if(snackMachine != null){
-                        getRefund(snackMachine.refund());
-                    }
-                    break;
-                case 5:
-                    isRunning = false;
-                    break;
-                default:
             }
-
         }
 
         INPUT_SCANNER.close();
     }
 
+    //Runs a prompt to allow the user to get their desired snack
     private static Snack selectSnackPrompt(){
         int selection;
 
@@ -90,27 +79,8 @@ public class Main {
         System.out.println("4. Crackers: "+Snack.CRACKERS.getPriceString());
         System.out.println();
 
-        do {
-            System.out.print("Enter: ");
-            String input = INPUT_SCANNER.nextLine();
-            System.out.println();
-
-            if(input.trim().equalsIgnoreCase("e")){
-                return null;
-            }
-
-            try{
-                selection = Integer.parseInt(input);
-
-                if(selection > 0 && selection <= Snack.values().length){
-                    return Snack.getSnackFromValue(selection);
-                } else{
-                    System.out.println("The selection you made was not valid. Please enter a different number or 'E' to exit.");
-                }
-            } catch(NumberFormatException e){
-                System.out.println("NumberFormatException: input string \""+input+"\" could not be parsed to an integer.");
-            }
-        } while(true);
+        selection = getUserIntInput(Snack.values().length);
+        return Snack.getSnackFromValue(selection);
     }
 
     private static Coin insertCoinPrompt(){
@@ -123,30 +93,39 @@ public class Main {
         System.out.println("4. Quarter: "+Coin.QUARTER.getValueString());
         System.out.println();
 
-        do {
-            System.out.print("Enter: ");
-            String input = INPUT_SCANNER.nextLine();
-            System.out.println();
-
-            if(input.trim().equalsIgnoreCase("e")){
-                return null;
-            }
-
-            try{
-                selection = Integer.parseInt(input);
-
-                if(selection > 0 && selection <= Coin.values().length){
-                    return Coin.getCoinFromValue(selection);
-                } else{
-                    System.out.println("The selection you made was not valid. Please enter a different number or 'E' to exit.");
-                }
-            } catch(NumberFormatException e){
-                System.out.println("NumberFormatException: input string \""+input+"\" could not be parsed to an integer.");
-            }
-        } while(true);
+        selection = getUserIntInput(Coin.values().length);
+        return Coin.getCoinFromValue(selection);
     }
 
-    private static void getPaymentStatus(int balance, Snack snack){
+    private static Snack collectItem(){
+        Snack purchasedSnack;
+
+        if(SNACK_MACHINE.getCurrentSnack() == null){
+            System.out.println("You need to select a snack first!");
+            System.out.println();
+            return null;
+        }
+
+        try {
+            purchasedSnack = SNACK_MACHINE.collectItem();
+            printRefund(SNACK_MACHINE.collectChange());
+            return purchasedSnack;
+        } catch(Exception e){
+            if(e instanceof InsufficientPaymentException){
+                System.out.println("You don't have enough money to purchase the selected snack!");
+                System.out.println();
+            }
+            if(e instanceof OutOfChangeException){
+                System.out.println("The Vending Machine doesn't have enough coins to make change!");
+                System.out.println();
+            }
+            return null;
+        }
+    }
+
+    private static void getTransactionInfo(List<Snack> snacks){
+        Snack snack = SNACK_MACHINE.getCurrentSnack();
+        int balance = SNACK_MACHINE.getCurrentBalance();
         String balanceString = Integer.toString(balance);
         int length = balanceString.length();
 
@@ -157,14 +136,18 @@ public class Main {
         }
 
         System.out.println("Your Balance: "+balanceString);
-        if(snack != null && balance > snack.getPrice()){
-            System.out.println("Snack price: "+snack.getPriceString());
-            System.out.println("You have enough money to purchase your snack!");
+        if(snack != null) {
+            System.out.println(snack.getName()+" price: "+snack.getPriceString());
+
+            if(balance > snack.getPrice()){
+                System.out.println("You have enough money to purchase your snack!");
+            }
         }
-        System.out.println();
+
+        printPurchases(snacks);
     }
 
-    private static void getRefund(List<Coin> coins){
+    private static void printRefund(List<Coin> coins){
         int pennies = 0;
         int nickles = 0;
         int dimes = 0;
@@ -188,11 +171,88 @@ public class Main {
                 }
             }
 
-            System.out.print("You have " + pennies + " pennies, ");
-            System.out.print(nickles + " nickles, ");
-            System.out.print(dimes + " dimes, ");
-            System.out.print("and "+ quarters + "quarters.");
+            String refundString = "You were refunded ";
+
+            if(pennies > 0)
+                refundString += pennies + " pennies, ";
+            if(nickles > 0)
+                refundString += nickles + " nickles, ";
+            if(dimes > 0)
+                refundString += dimes + " dimes, ";
+            if(quarters > 0)
+                refundString += quarters + " quarters.";
+
+            System.out.println(refundString);
+            System.out.println();
+        } else{
+            System.out.println("You have no remaining balance, so no coins were returned.");
             System.out.println();
         }
+    }
+
+    private static void printPurchases(List<Snack> snacks){
+        int chips = 0;
+        int candy = 0;
+        int cookies = 0;
+        int crackers = 0;
+
+        if(snacks != null && snacks.size() > 0){
+            for(Snack snack: snacks){
+                switch(snack){
+                    case CHIPS:
+                        chips++;
+                        break;
+                    case CANDY:
+                        candy++;
+                        break;
+                    case COOKIES:
+                        cookies++;
+                        break;
+                    case CRACKERS:
+                        crackers++;
+                        break;
+                }
+            }
+
+            String purchasesString = "You have bought ";
+
+            if(chips > 0)
+                purchasesString += chips + " bags of chips, ";
+            if(candy > 0)
+                purchasesString += candy + " pieces of candy, ";
+            if(cookies > 0)
+                purchasesString += cookies + " cookies, ";
+            if(crackers > 0)
+                purchasesString += crackers + " packs of crackers.";
+
+            System.out.println(purchasesString);
+            System.out.println();
+        } else{
+            System.out.println("You haven't purchased any snacks yet!");
+            System.out.println();
+        }
+    }
+
+    private static int getUserIntInput(int numOfOptions){
+        int selection;
+
+        //Require user input until a valid input it given.
+        do {
+            System.out.print("Enter: ");
+            String input = INPUT_SCANNER.nextLine();
+            System.out.println();
+
+            try {
+                selection = Integer.parseInt(input);
+
+                if (selection > 0 && selection <= numOfOptions) {
+                    return selection;
+                } else {
+                    System.out.println("The selection you made was not valid. Please enter a different number.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("NumberFormatException: input string \"" + input + "\" could not be parsed to an integer.");
+            }
+        } while (true);
     }
 }

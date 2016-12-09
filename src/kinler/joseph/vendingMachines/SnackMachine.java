@@ -42,7 +42,7 @@ public class SnackMachine implements VendingMachine {
     public Snack selectItem(Snack snack) {
         if(mSnackInventory.hasInStock(snack)){
             mCurrentSnack = snack;
-            return snack;
+            return mCurrentSnack;
         }
         throw new OutOfStockException();
     }
@@ -63,7 +63,7 @@ public class SnackMachine implements VendingMachine {
         return refundedCoins;
     }
 
-
+    //Give the snack to the user if they have inserted enough money and the machine has enough change to complete
     @Override
     public Snack collectItem() throws InsufficientPaymentException, OutOfChangeException {
         if(hasEnoughMoney()){
@@ -76,6 +76,7 @@ public class SnackMachine implements VendingMachine {
         throw new InsufficientPaymentException();
     }
 
+    //Give the list of coins back to the user after finishing a purchase
     @Override
     public List<Coin> collectChange() {
         int remainingBalance = mCurrentBalance - mCurrentSnack.getPrice();
@@ -90,6 +91,7 @@ public class SnackMachine implements VendingMachine {
         return coins;
     }
 
+    //Method to completely reset the vending machine
     @Override
     public void reset() {
         mCoinInventory.clearStock();
@@ -99,10 +101,12 @@ public class SnackMachine implements VendingMachine {
         mCurrentBalance = 0;
     }
 
+    //Checks to see if the user has enough money to finish their purchase
     private boolean hasEnoughMoney(){
         return mCurrentBalance >= mCurrentSnack.getPrice();
     }
 
+    //Checks to see if the vending machine has enough change to finish the transaction
     private boolean hasEnoughChange(){
         int remainingBalance = mCurrentBalance - mCurrentSnack.getPrice();
         try{
@@ -114,6 +118,7 @@ public class SnackMachine implements VendingMachine {
         return true;
     }
 
+    //This Method uses a greedy algorithm to make change out of the available coins if it is possible
     private List<Coin> getChange(int balance) throws OutOfChangeException{
         List<Coin> coinList = new ArrayList<>();
 
@@ -159,10 +164,12 @@ public class SnackMachine implements VendingMachine {
         return coinList;
     }
 
+    //Return the current snack
     public Snack getCurrentSnack() {
         return mCurrentSnack;
     }
 
+    //Return the current balance
     public int getCurrentBalance() {
         return mCurrentBalance;
     }

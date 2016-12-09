@@ -45,7 +45,7 @@ public enum Snack {
         int length = priceString.length();
 
         if(length == 1){
-            return ".0 " + priceString;
+            return ".0" + priceString;
         } else {
             return priceString.substring(0, length - 2) + "." + priceString.substring(length - 2, length);
         }
