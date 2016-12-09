@@ -83,6 +83,7 @@ public class Main {
         return Snack.getSnackFromValue(selection);
     }
 
+    //Runs a prompt to allow the user to insert coins for their purchase
     private static Coin insertCoinPrompt(){
         int selection;
 
@@ -97,6 +98,7 @@ public class Main {
         return Coin.getCoinFromValue(selection);
     }
 
+    //Collects the item to be added to the user's purchases
     private static Snack collectItem(){
         Snack purchasedSnack;
 
@@ -123,6 +125,7 @@ public class Main {
         }
     }
 
+    //Prints any relevant data to the user's transaction so far
     private static void getTransactionInfo(List<Snack> snacks){
         Snack snack = SNACK_MACHINE.getCurrentSnack();
         int balance = SNACK_MACHINE.getCurrentBalance();
@@ -147,6 +150,7 @@ public class Main {
         printPurchases(snacks);
     }
 
+    //Count the list of coins and print a statement describing how many coins their were
     private static void printRefund(List<Coin> coins){
         int pennies = 0;
         int nickles = 0;
@@ -190,6 +194,7 @@ public class Main {
         }
     }
 
+    //Count the list of snacks and print a statement describing how many snack the user has
     private static void printPurchases(List<Snack> snacks){
         int chips = 0;
         int candy = 0;
@@ -233,6 +238,7 @@ public class Main {
         }
     }
 
+    //This method handles retrieving the user input based on a number of options
     private static int getUserIntInput(int numOfOptions){
         int selection;
 

@@ -32,11 +32,7 @@ public class Inventory<T> {
 
     //Returns whether the item specified has at least one item in stock
     public boolean hasInStock(T item){
-        if(getItemStock(item) > 0){
-            return true;
-        } else{
-            return false;
-        }
+        return getItemStock(item) > 0;
     }
 
     //Returns the exact amount of stock for a single item type
